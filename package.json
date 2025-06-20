@@ -17,6 +17,7 @@
   },
   "devDependencies": {
     "npm-check-updates": "^16.14.20",
+    "rollup-plugin-styles": "^4.0.0",
     "vite": "^6.3.5"
   }
 }

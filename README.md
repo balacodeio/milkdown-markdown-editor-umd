@@ -21,8 +21,7 @@ For development purposes, use the non-minified bundle:
     <title>Test Milkdown Crepe UMD</title>
     <!-- Link to the required CSS bundle from this repository -->
     <!-- Replace <version> with the specific version you are using -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/balacodeio/milkdown-markdown-editor-umd@<version>/dist/<version>/style.css">
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/balacodeio/milkdown-markdown-editor-umd@<version>/dist/<version>/theme/frame.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/balacodeio/milkdown-markdown-editor-umd@<version>/dist/<version>/index.css">
 </head>
 <body>
     <!-- Add a container for the editor -->
@@ -55,14 +54,13 @@ If you would like to use a specific version then indicate it in the URL:
 
 ### Including the CSS
 
-The build process now extracts the necessary CSS into separate files. You can include them by linking to them from this repository's jsDelivr path. Include the following lines in your HTML's `<head>` section, replacing `<version>` with the specific version of the UMD bundle you are using:
+The build process now extracts the necessary CSS into a single `index.css` file. You can include it by linking to it from this repository's jsDelivr path. Include the following line in your HTML's `<head>` section, replacing `<version>` with the specific version of the UMD bundle you are using:
 
 ```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/balacodeio/milkdown-markdown-editor-umd@<version>/dist/<version>/style.css">
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/balacodeio/milkdown-markdown-editor-umd@<version>/dist/<version>/theme/frame.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/balacodeio/milkdown-markdown-editor-umd@<version>/dist/<version>/index.css">
 ```
 
-Alternatively, you can still link to the CSS files from the official Milkdown Crepe CDN or self-host them.
+Alternatively, you can still link to the CSS files from the official Milkdown Crepe CDN or self-host them, although linking to the extracted CSS from this repository is now the recommended method.
 
 ## Contributing
 
