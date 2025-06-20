@@ -21,61 +21,66 @@ jobs:
       - name: Install npm-check-updates
         run: npm install -g npm-check-updates
 
-      - name: Check for @milkdown/kit updates
-        id: check_updates
-        run: |
-          # Check if updates are available without applying them yet
-          if ncu --target latest "@milkdown/kit" | grep -q "All dependencies match the latest package versions"; then
-            echo "No new version found."
-            echo "changes=false" >> $GITHUB_ENV
-          else
-            echo "New version of @milkdown/kit found. Proceeding with update."
-            echo "changes=true" >> $GITHUB_ENV
-            # Apply the updates to package.json
-            ncu -u --target latest "@milkdown/kit"
-          fi
+      - name: Update dependencies
+        run: ncu -u --target latest "@milkdown/kit"
 
       - name: Install dependencies
-        # This step runs if changes=true or if manually triggered (workflow_dispatch)
-        # It's outside the if condition to ensure dependencies are installed for the build
         run: npm install
 
       - name: Run build script
-        # This step runs if changes=true or if manually triggered (workflow_dispatch)
-        # It's outside the if condition to ensure the build runs
         run: npm run build
+
+      - name: Stage changes
+        run: |
+          git add package.json package-lock.json dist/
+
+      - name: Check for changes
+        id: git_status
+        run: |
+          git diff --cached --quiet || echo "changes=true" >> $GITHUB_ENV
 
       - name: Get new version from package.json
         if: env.changes == 'true'
         id: get_version
         run: |
-          # Read the version from package.json AFTER ncu -u has potentially updated it
           NEW_VERSION=$(jq -r '.dependencies["@milkdown/kit"]' package.json | tr -d '^')
           echo "new_version=$NEW_VERSION" >> $GITHUB_ENV
           echo "Extracted new version: $NEW_VERSION" # Log the extracted version
 
-      - name: Organize dist files
-        if: env.changes == 'true' # Only organize if there were changes and a new version was extracted
+      - name: Update package.json version
+        if: env.changes == 'true'
         run: |
-          # Define the bundle name
+          npm version ${{ env.new_version }} --no-git-tag-version
+        id: update_version
+
+      - name: Organize dist files
+        if: env.changes == 'true'
+        run: |
           BUNDLE_NAME="milkdown-kit-bundle"
-          BUNDLE_FILE="$BUNDLE_NAME.umd.js"
-          MINIFIED_BUNDLE_FILE="$BUNDLE_NAME.umd.min.js"
+          SOURCE_BUNDLE_PATH="dist/$BUNDLE_NAME.umd.js"
+          VERSIONED_DIR="dist/${{ env.new_version }}"
+          VERSIONED_BUNDLE_JS="$VERSIONED_DIR/$BUNDLE_NAME-${{ env.new_version }}.js"
+          VERSIONED_BUNDLE_MIN_JS="$VERSIONED_DIR/$BUNDLE_NAME-${{ env.new_version }}.min.js"
+          LATEST_DIR="dist/latest"
+          LATEST_BUNDLE_JS="$LATEST_DIR/$BUNDLE_NAME.js"
+          LATEST_BUNDLE_MIN_JS="$LATEST_DIR/$BUNDLE_NAME.min.js"
 
           # Create versioned directory
-          mkdir -p dist/${{ env.new_version }}
+          mkdir -p $VERSIONED_DIR
 
           # Copy bundle to versioned directory
-          cp dist/$BUNDLE_FILE dist/${{ env.new_version }}/$BUNDLE_NAME-${{ env.new_version }}.js
+          cp $SOURCE_BUNDLE_PATH $VERSIONED_BUNDLE_JS
 
           # Create minified version and save to versioned directory
-          npx terser dist/$BUNDLE_FILE -o dist/${{ env.new_version }}/$BUNDLE_NAME-${{ env.new_version }}.min.js --compress --mangle
+          npx terser $SOURCE_BUNDLE_PATH -o $VERSIONED_BUNDLE_MIN_JS --compress --mangle
 
           # Create a 'latest' directory for easy access
-          rm -rf dist/latest
-          mkdir -p dist/latest
-          cp dist/${{ env.new_version }}/$BUNDLE_NAME-${{ env.new_version }}.min.js dist/latest/$BUNDLE_NAME.min.js
-          cp dist/${{ env.new_version }}/$BUNDLE_NAME-${{ env.new_version }}.js dist/latest/$BUNDLE_NAME.js
+          rm -rf $LATEST_DIR
+          mkdir -p $LATEST_DIR
+
+          # Copy versioned files to latest directory
+          cp $VERSIONED_BUNDLE_MIN_JS $LATEST_BUNDLE_MIN_JS
+          cp $VERSIONED_BUNDLE_JS $LATEST_BUNDLE_JS
 
       - name: Commit and push changes
         if: env.changes == 'true'
