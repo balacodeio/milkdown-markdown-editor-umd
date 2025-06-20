@@ -21,38 +21,27 @@ jobs:
       - name: Install npm-check-updates
         run: npm install -g npm-check-updates
 
-      - name: Check for @milkdown/crepe updates
-        id: check_updates
+      - name: Check for updates, build, organize, and stage changes
+        id: build_and_stage
         run: |
+          set -e # Exit immediately if a command exits with a non-zero status.
+          changes_found=false
           if ncu --target latest "@milkdown/crepe" | grep -q "All dependencies match the latest package versions"; then
-            echo "No new version found."
-            echo "changes=false" >> $GITHUB_ENV
+            echo "No new version found for @milkdown/crepe."
           else
             echo "New version of @milkdown/crepe found. Proceeding with update."
-            echo "changes=true" >> $GITHUB_ENV
+            changes_found=true
             ncu -u --target latest "@milkdown/crepe"
           fi
 
-      - name: Install dependencies
-        run: npm install
+          echo "Running npm install..."
+          npm install
 
-      - name: Run build script
-        run: npm run build
+          echo "Running npm run build..."
+          npm run build # This outputs to dist-temp
 
-      - name: Get new version from package.json
-        if: env.changes == 'true'
-        id: get_version
-        run: |
-          echo "new_version=$(jq -r .dependencies[\"@milkdown/crepe\"] package.json | tr -d '^')" >> $GITHUB_ENV
-
-      - name: Update package.json version
-        if: env.changes == 'true'
-        run: |
-          npm version ${{ env.new_version }} --no-git-tag-version --allow-same-version
-
-      - name: Organize dist files
-        run: |
-          set -x # Enable command tracing
+          echo "Organizing dist files..."
+          set -x # Enable command tracing for this section
 
           # Remove old top-level files from dist, if they exist
           rm -f dist/milkdown-crepe-bundle.umd.js
@@ -107,20 +96,45 @@ jobs:
 
           # Clean up temporary directory
           rm -rf $TEMP_DIR
+          set +x # Disable command tracing
 
-      - name: Check for changes in dist directory
-        id: check_dist_changes
-        run: |
-          if [[ -n $(git status --porcelain dist) ]]; then
-            echo "Dist directory has changes."
-            echo "dist_changed=true" >> $GITHUB_ENV
+          echo "Staging changes..."
+          git add package.json package-lock.json dist/
+          if ! git diff --cached --quiet; then
+            echo "Changes detected in package files or dist directory."
+            changes_found=true
           else
-            echo "No changes in dist directory."
-            echo "dist_changed=false" >> $GITHUB_ENV
+            if [[ "$changes_found" == "false" ]]; then
+              echo "No changes detected overall."
+            fi
+          fi
+
+          if [[ "$changes_found" == "true" ]]; then
+            echo "changes=true" >> $GITHUB_ENV
+          else
+            echo "changes=false" >> $GITHUB_ENV
+          fi
+
+      - name: Get new version from package.json
+        if: steps.build_and_stage.outputs.changes == 'true'
+        id: get_version
+        run: |
+          echo "new_version=$(jq -r .dependencies[\"@milkdown/crepe\"] package.json | tr -d '^')" >> $GITHUB_ENV
+
+      - name: Update package.json version
+        if: steps.build_and_stage.outputs.changes == 'true' # Only update if @milkdown/crepe changed
+        run: |
+          # This step assumes new_version is set if changes were due to @milkdown/crepe update
+          # If changes were only in dist, new_version might not be set, handle accordingly or ensure it's always the current version
+          if [ -n "${{ steps.get_version.outputs.new_version }}" ]; then
+            npm version ${{ steps.get_version.outputs.new_version }} --no-git-tag-version --allow-same-version
+          else
+            echo "No new @milkdown/crepe version to update in package.json, using current version for tagging."
+            echo "new_version=$(jq -r .version package.json)" >> $GITHUB_ENV 
           fi
 
       - name: Commit and push changes
-        if: env.changes == 'true' || steps.check_dist_changes.outputs.dist_changed == 'true'
+        if: steps.build_and_stage.outputs.changes == 'true'
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
@@ -129,13 +143,13 @@ jobs:
           git push
 
       - name: Create and push version tag
-        if: env.changes == 'true' || steps.check_dist_changes.outputs.dist_changed == 'true'
+        if: steps.build_and_stage.outputs.changes == 'true'
         run: |
           git tag v${{ env.new_version }}
           git push origin v${{ env.new_version }}
 
       - name: Update latest tag
-        if: env.changes == 'true' || steps.check_dist_changes.outputs.dist_changed == 'true'
+        if: steps.build_and_stage.outputs.changes == 'true'
         run: |
           git tag -f latest
           git push -f origin latest
