@@ -110,9 +110,9 @@ jobs:
           fi
 
           if [[ "$changes_found" == "true" ]]; then
-            echo "changes=true" >> $GITHUB_ENV
+            echo "changes=true" >> $GITHUB_OUTPUT
           else
-            echo "changes=false" >> $GITHUB_ENV
+            echo "changes=false" >> $GITHUB_OUTPUT
           fi
 
       - name: Get new version from package.json
