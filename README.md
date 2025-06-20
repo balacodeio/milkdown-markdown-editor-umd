@@ -20,8 +20,8 @@ For development purposes, use the non-minified bundle:
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Test Milkdown Crepe UMD</title>
     <!-- Link to the required CSS bundle from this repository -->
-    <!-- Replace <version> with the specific version you are using -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/balacodeio/milkdown-markdown-editor-umd@<version>/dist/<version>/index.css">
+    <!-- Using the latest version -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/balacodeio/milkdown-markdown-editor-umd@latest/dist/latest/milkdown-crepe-bundle.umd.css">
 </head>
 <body>
     <!-- Add a container for the editor -->
@@ -57,7 +57,7 @@ If you would like to use a specific version then indicate it in the URL:
 The build process now extracts the necessary CSS into a single `index.css` file. You can include it by linking to it from this repository's jsDelivr path. Include the following line in your HTML's `<head>` section, replacing `<version>` with the specific version of the UMD bundle you are using:
 
 ```html
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/balacodeio/milkdown-markdown-editor-umd@<version>/dist/<version>/index.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/balacodeio/milkdown-markdown-editor-umd@<version>/dist/<version>/milkdown-crepe-bundle.umd.css">
 ```
 
 Alternatively, you can still link to the CSS files from the official Milkdown Crepe CDN or self-host them, although linking to the extracted CSS from this repository is now the recommended method.
