@@ -55,33 +55,44 @@ jobs:
       - name: Organize dist files
         if: env.changes == 'true'
         run: |
-          # Create versioned directory
-          mkdir -p dist/${{ env.new_version }}
-          BUNDLE_NAME="milkdown-crepe-bundle"
-          SOURCE_BUNDLE_PATH="dist/$BUNDLE_NAME.umd.js"
-          VERSIONED_DIR="dist/${{ env.new_version }}"
-          VERSIONED_BUNDLE_JS="$VERSIONED_DIR/$BUNDLE_NAME-${{ env.new_version }}.js"
-          VERSIONED_BUNDLE_MIN_JS="$VERSIONED_DIR/$BUNDLE_NAME-${{ env.new_version }}.min.js"
+          # Define paths and names
+          VERSION="${{ env.new_version }}"
+          TEMP_DIR="dist-temp"
+          VERSIONED_DIR="dist/$VERSION"
           LATEST_DIR="dist/latest"
-          LATEST_BUNDLE_JS="$LATEST_DIR/$BUNDLE_NAME.js"
-          LATEST_BUNDLE_MIN_JS="$LATEST_DIR/$BUNDLE_NAME.min.js"
+          BUNDLE_NAME="milkdown-crepe-bundle.umd"
+          JS_FILE="$BUNDLE_NAME.js"
+          CSS_FILE="$BUNDLE_NAME.css"
+          SOURCE_JS_PATH="$TEMP_DIR/$JS_FILE"
+          SOURCE_CSS_PATH="$TEMP_DIR/$CSS_FILE"
+          VERSIONED_JS_PATH="$VERSIONED_DIR/$BUNDLE_NAME-$VERSION.js"
+          VERSIONED_MIN_JS_PATH="$VERSIONED_DIR/$BUNDLE_NAME-$VERSION.min.js"
+          VERSIONED_CSS_PATH="$VERSIONED_DIR/$BUNDLE_NAME-$VERSION.css"
+          LATEST_JS_PATH="$LATEST_DIR/$BUNDLE_NAME.js"
+          LATEST_MIN_JS_PATH="$LATEST_DIR/$BUNDLE_NAME.min.js"
+          LATEST_CSS_PATH="$LATEST_DIR/$BUNDLE_NAME.css"
 
           # Create versioned directory
           mkdir -p $VERSIONED_DIR
 
-          # Copy bundle to versioned directory
-          cp $SOURCE_BUNDLE_PATH $VERSIONED_BUNDLE_JS
+          # Copy JS and CSS to versioned directory
+          cp $SOURCE_JS_PATH $VERSIONED_JS_PATH
+          cp $SOURCE_CSS_PATH $VERSIONED_CSS_PATH
 
-          # Create minified version and save to versioned directory
-          npx terser $SOURCE_BUNDLE_PATH -o $VERSIONED_BUNDLE_MIN_JS --compress --mangle
+          # Create minified JS version and save to versioned directory
+          npx terser $SOURCE_JS_PATH -o $VERSIONED_MIN_JS_PATH --compress --mangle
 
           # Create a 'latest' directory for easy access
           rm -rf $LATEST_DIR
           mkdir -p $LATEST_DIR
 
-          # Copy versioned files to latest directory
-          cp $VERSIONED_BUNDLE_MIN_JS $LATEST_BUNDLE_MIN_JS
-          cp $VERSIONED_BUNDLE_JS $LATEST_BUNDLE_JS
+          # Copy versioned files (JS and CSS) to latest directory
+          cp $VERSIONED_JS_PATH $LATEST_JS_PATH
+          cp $VERSIONED_MIN_JS_PATH $LATEST_MIN_JS_PATH
+          cp $VERSIONED_CSS_PATH $LATEST_CSS_PATH
+
+          # Clean up temporary directory
+          rm -rf $TEMP_DIR
 
       - name: Commit and push changes
         if: env.changes == 'true'

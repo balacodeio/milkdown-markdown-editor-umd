@@ -10,7 +10,7 @@ export default defineConfig({
       formats: ['umd'],
       fileName: (format) => `milkdown-crepe-bundle.umd.js`,
     },
-    outDir: 'dist',
+    outDir: 'dist-temp', // Output to a temporary directory
     emptyOutDir: true,
     cssCodeSplit: true, // Ensure CSS is split into a separate file
     cssTarget: 'es2015', // Ensure compatibility
