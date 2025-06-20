@@ -57,15 +57,31 @@ jobs:
         run: |
           # Create versioned directory
           mkdir -p dist/${{ env.new_version }}
+          BUNDLE_NAME="milkdown-crepe-bundle"
+          SOURCE_BUNDLE_PATH="dist/$BUNDLE_NAME.umd.js"
+          VERSIONED_DIR="dist/${{ env.new_version }}"
+          VERSIONED_BUNDLE_JS="$VERSIONED_DIR/$BUNDLE_NAME-${{ env.new_version }}.js"
+          VERSIONED_BUNDLE_MIN_JS="$VERSIONED_DIR/$BUNDLE_NAME-${{ env.new_version }}.min.js"
+          LATEST_DIR="dist/latest"
+          LATEST_BUNDLE_JS="$LATEST_DIR/$BUNDLE_NAME.js"
+          LATEST_BUNDLE_MIN_JS="$LATEST_DIR/$BUNDLE_NAME.min.js"
+
+          # Create versioned directory
+          mkdir -p $VERSIONED_DIR
+
           # Copy bundle to versioned directory
-          cp dist/milkdown-crepe-bundle.js dist/${{ env.new_version }}/milkdown-crepe-bundle-${{ env.new_version }}.js
-          # Create minified version
-          npx terser dist/milkdown-crepe-bundle.js -o dist/${{ env.new_version }}/milkdown-crepe-bundle-${{ env.new_version }}.min.js --compress --mangle
+          cp $SOURCE_BUNDLE_PATH $VERSIONED_BUNDLE_JS
+
+          # Create minified version and save to versioned directory
+          npx terser $SOURCE_BUNDLE_PATH -o $VERSIONED_BUNDLE_MIN_JS --compress --mangle
+
           # Create a 'latest' directory for easy access
-          rm -rf dist/latest
-          mkdir -p dist/latest
-          cp dist/${{ env.new_version }}/milkdown-crepe-bundle-${{ env.new_version }}.min.js dist/latest/milkdown-crepe-bundle.min.js
-          cp dist/${{ env.new_version }}/milkdown-crepe-bundle-${{ env.new_version }}.js dist/latest/milkdown-crepe-bundle.js
+          rm -rf $LATEST_DIR
+          mkdir -p $LATEST_DIR
+
+          # Copy versioned files to latest directory
+          cp $VERSIONED_BUNDLE_MIN_JS $LATEST_BUNDLE_MIN_JS
+          cp $VERSIONED_BUNDLE_JS $LATEST_BUNDLE_JS
 
       - name: Commit and push changes
         if: env.changes == 'true'
