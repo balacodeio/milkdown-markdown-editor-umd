@@ -104,8 +104,19 @@ jobs:
           # Clean up temporary directory
           rm -rf $TEMP_DIR
 
+      - name: Check for changes in dist directory
+        id: check_dist_changes
+        run: |
+          if [[ -n $(git status --porcelain dist) ]]; then
+            echo "Dist directory has changes."
+            echo "dist_changed=true" >> $GITHUB_ENV
+          else
+            echo "No changes in dist directory."
+            echo "dist_changed=false" >> $GITHUB_ENV
+          fi
+
       - name: Commit and push changes
-        if: env.changes == 'true'
+        if: env.changes == 'true' || steps.check_dist_changes.outputs.dist_changed == 'true'
         run: |
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
@@ -114,13 +125,13 @@ jobs:
           git push
 
       - name: Create and push version tag
-        if: env.changes == 'true'
+        if: env.changes == 'true' || steps.check_dist_changes.outputs.dist_changed == 'true'
         run: |
           git tag v${{ env.new_version }}
           git push origin v${{ env.new_version }}
 
       - name: Update latest tag
-        if: env.changes == 'true'
+        if: env.changes == 'true' || steps.check_dist_changes.outputs.dist_changed == 'true'
         run: |
           git tag -f latest
           git push -f origin latest
