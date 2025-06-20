@@ -54,6 +54,10 @@ jobs:
         run: |
           set -x # Enable command tracing
 
+          # Remove old top-level files from dist, if they exist
+          rm -f dist/milkdown-crepe-bundle.umd.js
+          rm -f dist/milkdown-crepe-bundle.umd.css
+
           # Get the current package version
           VERSION=$(jq -r .version package.json)
           echo "VERSION variable is: $VERSION"
