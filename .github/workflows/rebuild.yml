@@ -52,8 +52,10 @@ jobs:
 
       - name: Organize dist files
         run: |
+          # Get the current package version
+          VERSION=$(jq -r .version package.json)
+
           # Define paths and names
-          VERSION="${{ env.new_version }}"
           TEMP_DIR="dist-temp"
           VERSIONED_DIR="dist/$VERSION"
           LATEST_DIR="dist/latest"
