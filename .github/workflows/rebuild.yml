@@ -52,8 +52,15 @@ jobs:
 
       - name: Organize dist files
         run: |
+          set -x # Enable command tracing
+
           # Get the current package version
           VERSION=$(jq -r .version package.json)
+          echo "VERSION variable is: $VERSION"
+
+          # List contents of dist-temp for debugging
+          echo "Contents of dist-temp before organizing:"
+          ls -R dist-temp || echo "dist-temp not found or empty"
 
           # Define paths and names
           TEMP_DIR="dist-temp"
@@ -89,6 +96,10 @@ jobs:
           cp $VERSIONED_JS_PATH $LATEST_JS_PATH
           cp $VERSIONED_MIN_JS_PATH $LATEST_MIN_JS_PATH
           cp $VERSIONED_CSS_PATH $LATEST_CSS_PATH
+
+          # List contents of dist for debugging before cleanup
+          echo "Contents of dist before cleaning dist-temp:"
+          ls -R dist || echo "dist not found or empty"
 
           # Clean up temporary directory
           rm -rf $TEMP_DIR
