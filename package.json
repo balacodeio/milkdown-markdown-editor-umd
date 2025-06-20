@@ -2,34 +2,23 @@
   "name": "milkdown-crepe-umd",
   "version": "7.4.0",
   "description": "A self-updating UMD distribution of the @milkdown/crepe package.",
-  "main": "dist/latest/milkdown-kit-bundle.min.js",
+  "main": "dist/latest/milkdown-crepe-bundle.min.js",
   "scripts": {
-    "build": "vite build"
+    "build": "webpack --mode=production"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/balacodeio/milkdown-kit-umd.git"
+    "url": "git+https://github.com/YourUsername/milkdown-crepe-umd.git"
   },
-  "author": "afaraha8403",
-  "company": "Balacode.io",
+  "author": "Your Name",
   "license": "ISC",
   "dependencies": {
-    "@milkdown/kit": "^7.13.2",
-    "@milkdown/plugin-history": "^7.13.2",
-    "@milkdown/plugin-clipboard": "^7.13.2",
-    "@milkdown/plugin-cursor": "^7.13.2",
-    "@milkdown/plugin-listener": "^7.13.2",
-    "@milkdown/plugin-indent": "^7.13.2",
-    "@milkdown/plugin-upload": "^7.13.2",
-    "@milkdown/plugin-block": "^7.13.2",
-    "@milkdown/plugin-tooltip": "^7.13.2",
-    "@milkdown/plugin-slash": "^7.13.2",
-    "@milkdown/plugin-collab": "^7.13.2",
-    "@milkdown/plugin-prism": "^7.13.2",
-    "@milkdown/plugin-emoji": "^7.13.2"
+    "@milkdown/crepe": "^7.4.0"
   },
   "devDependencies": {
     "npm-check-updates": "^16.14.20",
-    "vite": "^6.3.5"
+    "terser-webpack-plugin": "^5.3.10",
+    "webpack": "^5.91.0",
+    "webpack-cli": "^5.1.4"
   }
 }

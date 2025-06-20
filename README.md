@@ -28,7 +28,7 @@ For development purposes, use the non-minified bundle:
     <div id="editor"></div>
 
     <!-- Load your self-hosted UMD bundle from jsDelivr -->
-<script src="https://cdn.jsdelivr.net/gh/balacodeio/milkdown-crepe-umd@latest/dist/latest/milkdown-crepe-bundle.min.js"></script> <!-- Minified bundle -->
+<script src="https://cdn.jsdelivr.net/gh/YourUsername/milkdown-crepe-umd@latest/dist/latest/milkdown-crepe-bundle.min.js"></script> <!-- Minified bundle -->
     <script>
         // The 'Crepe' class is now available on the window object
         const crepe = new Crepe({
@@ -42,14 +42,13 @@ For development purposes, use the non-minified bundle:
 </body>
 </html>
 ```
-**Action:** Remember to replace `YourUsername` with your actual GitHub username in the script tag URL.
 
 ### Specific version
 
 If you would like to use a specific version then indicate it in the URL:
 
 ```HTML
-<script src="https://cdn.jsdelivr.net/gh/balacodeio/milkdown-crepe-umd@<version>/dist/<version>/milkdown-crepe-bundle-<version>.min.js"></script> <!-- Minified bundle -->
+<script src="https://cdn.jsdelivr.net/gh/YourUsername/milkdown-crepe-umd@<version>/dist/<version>/milkdown-crepe-bundle-<version>.min.js"></script> <!-- Minified bundle -->
 ```
 **Action:** Replace `<version>` with the specific version number you want to use.
 

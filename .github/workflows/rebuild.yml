@@ -21,66 +21,51 @@ jobs:
       - name: Install npm-check-updates
         run: npm install -g npm-check-updates
 
-      - name: Update dependencies
-        run: ncu -u --target latest "@milkdown/kit"
+      - name: Check for @milkdown/crepe updates
+        id: check_updates
+        run: |
+          if ncu --target latest "@milkdown/crepe" | grep -q "All dependencies match the latest package versions"; then
+            echo "No new version found."
+            echo "changes=false" >> $GITHUB_ENV
+          else
+            echo "New version of @milkdown/crepe found. Proceeding with update."
+            echo "changes=true" >> $GITHUB_ENV
+            ncu -u --target latest "@milkdown/crepe"
+          fi
 
       - name: Install dependencies
+        if: env.changes == 'true'
         run: npm install
 
       - name: Run build script
+        if: env.changes == 'true'
         run: npm run build
-
-      - name: Stage changes
-        run: |
-          git add package.json package-lock.json dist/
-
-      - name: Check for changes
-        id: git_status
-        run: |
-          git diff --cached --quiet || echo "changes=true" >> $GITHUB_ENV
 
       - name: Get new version from package.json
         if: env.changes == 'true'
         id: get_version
         run: |
-          NEW_VERSION=$(jq -r '.dependencies["@milkdown/kit"]' package.json | tr -d '^')
-          echo "new_version=$NEW_VERSION" >> $GITHUB_ENV
-          echo "Extracted new version: $NEW_VERSION" # Log the extracted version
+          echo "new_version=$(jq -r .dependencies[\"@milkdown/crepe\"] package.json | tr -d '^')" >> $GITHUB_ENV
 
       - name: Update package.json version
         if: env.changes == 'true'
         run: |
-          npm version ${{ env.new_version }} --no-git-tag-version
-        id: update_version
+          npm version ${{ env.new_version }} --no-git-tag-version --allow-same-version
 
       - name: Organize dist files
         if: env.changes == 'true'
         run: |
-          BUNDLE_NAME="milkdown-kit-bundle"
-          SOURCE_BUNDLE_PATH="dist/$BUNDLE_NAME.umd.js"
-          VERSIONED_DIR="dist/${{ env.new_version }}"
-          VERSIONED_BUNDLE_JS="$VERSIONED_DIR/$BUNDLE_NAME-${{ env.new_version }}.js"
-          VERSIONED_BUNDLE_MIN_JS="$VERSIONED_DIR/$BUNDLE_NAME-${{ env.new_version }}.min.js"
-          LATEST_DIR="dist/latest"
-          LATEST_BUNDLE_JS="$LATEST_DIR/$BUNDLE_NAME.js"
-          LATEST_BUNDLE_MIN_JS="$LATEST_DIR/$BUNDLE_NAME.min.js"
-
           # Create versioned directory
-          mkdir -p $VERSIONED_DIR
-
+          mkdir -p dist/${{ env.new_version }}
           # Copy bundle to versioned directory
-          cp $SOURCE_BUNDLE_PATH $VERSIONED_BUNDLE_JS
-
-          # Create minified version and save to versioned directory
-          npx terser $SOURCE_BUNDLE_PATH -o $VERSIONED_BUNDLE_MIN_JS --compress --mangle
-
+          cp dist/milkdown-crepe-bundle.js dist/${{ env.new_version }}/milkdown-crepe-bundle-${{ env.new_version }}.js
+          # Create minified version
+          npx terser dist/milkdown-crepe-bundle.js -o dist/${{ env.new_version }}/milkdown-crepe-bundle-${{ env.new_version }}.min.js --compress --mangle
           # Create a 'latest' directory for easy access
-          rm -rf $LATEST_DIR
-          mkdir -p $LATEST_DIR
-
-          # Copy versioned files to latest directory
-          cp $VERSIONED_BUNDLE_MIN_JS $LATEST_BUNDLE_MIN_JS
-          cp $VERSIONED_BUNDLE_JS $LATEST_BUNDLE_JS
+          rm -rf dist/latest
+          mkdir -p dist/latest
+          cp dist/${{ env.new_version }}/milkdown-crepe-bundle-${{ env.new_version }}.min.js dist/latest/milkdown-crepe-bundle.min.js
+          cp dist/${{ env.new_version }}/milkdown-crepe-bundle-${{ env.new_version }}.js dist/latest/milkdown-crepe-bundle.js
 
       - name: Commit and push changes
         if: env.changes == 'true'
@@ -88,7 +73,7 @@ jobs:
           git config --global user.name 'github-actions[bot]'
           git config --global user.email 'github-actions[bot]@users.noreply.github.com'
           git add .
-          git commit -m "build: update @milkdown/kit to v${{ env.new_version }} and rebuild"
+          git commit -m "build: update @milkdown/crepe to v${{ env.new_version }} and rebuild"
           git push
 
       - name: Create and push version tag
