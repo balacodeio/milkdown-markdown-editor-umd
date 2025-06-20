@@ -24,33 +24,38 @@ jobs:
       - name: Check for @milkdown/kit updates
         id: check_updates
         run: |
+          # Check if updates are available without applying them yet
           if ncu --target latest "@milkdown/kit" | grep -q "All dependencies match the latest package versions"; then
             echo "No new version found."
             echo "changes=false" >> $GITHUB_ENV
           else
             echo "New version of @milkdown/kit found. Proceeding with update."
             echo "changes=true" >> $GITHUB_ENV
+            # Apply the updates to package.json
             ncu -u --target latest "@milkdown/kit"
           fi
 
       - name: Install dependencies
+        # This step runs if changes=true or if manually triggered (workflow_dispatch)
+        # It's outside the if condition to ensure dependencies are installed for the build
         run: npm install
 
       - name: Run build script
+        # This step runs if changes=true or if manually triggered (workflow_dispatch)
+        # It's outside the if condition to ensure the build runs
         run: npm run build
 
       - name: Get new version from package.json
         if: env.changes == 'true'
         id: get_version
         run: |
-          echo "new_version=$(jq -r .dependencies[\"@milkdown/kit\"] package.json | tr -d '^')" >> $GITHUB_ENV
-
-      - name: Update package.json version
-        if: env.changes == 'true'
-        run: |
-          npm version ${{ env.new_version }} --no-git-tag-version --allow-same-version
+          # Read the version from package.json AFTER ncu -u has potentially updated it
+          NEW_VERSION=$(jq -r '.dependencies["@milkdown/kit"]' package.json | tr -d '^')
+          echo "new_version=$NEW_VERSION" >> $GITHUB_ENV
+          echo "Extracted new version: $NEW_VERSION" # Log the extracted version
 
       - name: Organize dist files
+        if: env.changes == 'true' # Only organize if there were changes and a new version was extracted
         run: |
           # Define the bundle name
           BUNDLE_NAME="milkdown-kit-bundle"
