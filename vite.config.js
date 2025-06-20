@@ -11,5 +11,7 @@ export default defineConfig({
     },
     outDir: 'dist',
     emptyOutDir: true,
+    cssCodeSplit: true, // Ensure CSS is split into a separate file
+    cssTarget: 'es2015', // Ensure compatibility
   },
 });
