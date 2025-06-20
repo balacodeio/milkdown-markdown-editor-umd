@@ -1,0 +1,97 @@
+name: Rebuild Bundles on Milkdown Crepe Update
+
+on:
+  schedule:
+    - cron: '0 8 * * *' # Runs daily at 8:00 AM UTC
+  workflow_dispatch: # Allows manual triggering of the workflow
+
+jobs:
+  rebuild:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install npm-check-updates
+        run: npm install -g npm-check-updates
+
+      - name: Check for @milkdown/kit updates
+        id: check_updates
+        run: |
+          if ncu --target latest "@milkdown/kit" | grep -q "All dependencies match the latest package versions"; then
+            echo "No new version found."
+            echo "changes=false" >> $GITHUB_ENV
+          else
+            echo "New version of @milkdown/kit found. Proceeding with update."
+            echo "changes=true" >> $GITHUB_ENV
+            ncu -u --target latest "@milkdown/kit"
+          fi
+
+      - name: Install dependencies
+        if: env.changes == 'true'
+        run: npm install
+
+      - name: Run build script
+        if: env.changes == 'true'
+        run: npm run build
+
+      - name: Get new version from package.json
+        if: env.changes == 'true'
+        id: get_version
+        run: |
+          echo "new_version=$(jq -r .dependencies[\"@milkdown/kit\"] package.json | tr -d '^')" >> $GITHUB_ENV
+
+      - name: Update package.json version
+        if: env.changes == 'true'
+        run: |
+          npm version ${{ env.new_version }} --no-git-tag-version --allow-same-version
+
+      - name: Organize dist files
+        if: env.changes == 'true'
+        run: |
+          # Define the bundle name
+          BUNDLE_NAME="milkdown-kit-bundle"
+          BUNDLE_FILE="$BUNDLE_NAME.umd.js"
+          MINIFIED_BUNDLE_FILE="$BUNDLE_NAME.umd.min.js"
+
+          # Create versioned directory
+          mkdir -p dist/${{ env.new_version }}
+
+          # Copy bundle to versioned directory
+          cp dist/$BUNDLE_FILE dist/${{ env.new_version }}/$BUNDLE_NAME-${{ env.new_version }}.js
+
+          # Create minified version and save to versioned directory
+          npx terser dist/$BUNDLE_FILE -o dist/${{ env.new_version }}/$BUNDLE_NAME-${{ env.new_version }}.min.js --compress --mangle
+
+          # Create a 'latest' directory for easy access
+          rm -rf dist/latest
+          mkdir -p dist/latest
+          cp dist/${{ env.new_version }}/$BUNDLE_NAME-${{ env.new_version }}.min.js dist/latest/$BUNDLE_NAME.min.js
+          cp dist/${{ env.new_version }}/$BUNDLE_NAME-${{ env.new_version }}.js dist/latest/$BUNDLE_NAME.js
+
+      - name: Commit and push changes
+        if: env.changes == 'true'
+        run: |
+          git config --global user.name 'github-actions[bot]'
+          git config --global user.email 'github-actions[bot]@users.noreply.github.com'
+          git add .
+          git commit -m "build: update @milkdown/kit to v${{ env.new_version }} and rebuild"
+          git push
+
+      - name: Create and push version tag
+        if: env.changes == 'true'
+        run: |
+          git tag v${{ env.new_version }}
+          git push origin v${{ env.new_version }}
+
+      - name: Update latest tag
+        if: env.changes == 'true'
+        run: |
+          git tag -f latest
+          git push -f origin latest

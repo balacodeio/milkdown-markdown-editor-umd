@@ -1,0 +1,23 @@
+{
+  "name": "milkdown-crepe-umd",
+  "version": "7.4.0",
+  "description": "A self-updating UMD distribution of the @milkdown/crepe package.",
+  "main": "dist/latest/milkdown-kit-bundle.min.js",
+  "scripts": {
+    "build": "vite build"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/balacodeio/milkdown-kit-umd.git"
+  },
+  "author": "afaraha8403",
+  "company": "Balacode.io",
+  "license": "ISC",
+  "dependencies": {
+    "@milkdown/kit": "^7.13.2"
+  },
+  "devDependencies": {
+    "npm-check-updates": "^16.14.20",
+    "vite": "^6.3.5"
+  }
+}
