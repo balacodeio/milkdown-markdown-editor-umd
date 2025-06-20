@@ -1,6 +1,6 @@
 {
   "name": "milkdown-crepe-umd",
-  "version": "7.4.0",
+  "version": "7.13.2",
   "description": "A self-updating UMD distribution of the @milkdown/crepe package.",
   "main": "dist/latest/milkdown-crepe-bundle.min.js",
   "scripts": {
@@ -13,7 +13,7 @@
   "author": "Your Name",
   "license": "ISC",
   "dependencies": {
-    "@milkdown/crepe": "^7.4.0"
+    "@milkdown/crepe": "^7.13.2"
   },
   "devDependencies": {
     "npm-check-updates": "^16.14.20",
