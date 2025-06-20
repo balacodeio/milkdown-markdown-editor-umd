@@ -34,11 +34,9 @@ jobs:
           fi
 
       - name: Install dependencies
-        if: env.changes == 'true'
         run: npm install
 
       - name: Run build script
-        if: env.changes == 'true'
         run: npm run build
 
       - name: Get new version from package.json
@@ -53,7 +51,6 @@ jobs:
           npm version ${{ env.new_version }} --no-git-tag-version --allow-same-version
 
       - name: Organize dist files
-        if: env.changes == 'true'
         run: |
           # Define the bundle name
           BUNDLE_NAME="milkdown-kit-bundle"
