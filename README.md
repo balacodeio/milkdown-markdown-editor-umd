@@ -21,14 +21,14 @@ For development purposes, use the non-minified bundle:
     <title>Test Milkdown Crepe UMD</title>
     <!-- Link to the required CSS bundle from this repository -->
     <!-- Using the latest version -->
-    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/balacodeio/milkdown-markdown-editor-umd@latest/dist/latest/milkdown-crepe-bundle.umd.css">
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/balacodeio/milkdown-markdown-editor-umd@latest/dist/latest/milkdown-crepe-bundle.umd.css">
 </head>
 <body>
     <!-- Add a container for the editor -->
     <div id="editor"></div>
 
     <!-- Load your self-hosted UMD bundle from jsDelivr -->
-<script src="https://cdn.jsdelivr.net/gh/balacodeio/milkdown-markdown-editor-umd@latest/dist/latest/milkdown-crepe-bundle.min.js"></script> <!-- Minified bundle -->
+<script src="https://cdn.jsdelivr.net/gh/balacodeio/milkdown-markdown-editor-umd@latest/dist/latest/milkdown-crepe-bundle.umd.js"></script>
     <script>
         // The 'Crepe' class is now available on the window object
         const crepe = new Crepe({
