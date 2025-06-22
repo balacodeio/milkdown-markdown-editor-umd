@@ -13,7 +13,7 @@
   "author": "Your Name",
   "license": "ISC",
   "dependencies": {
-    "@milkdown/crepe": "^7.13.2"
+    "@milkdown/crepe": "^7.14.0"
   },
   "devDependencies": {
     "npm-check-updates": "^16.14.20",
