@@ -26,6 +26,8 @@ jobs:
         run: |
           set -e # Exit immediately if a command exits with a non-zero status.
           changes_found=false
+
+          echo "--- Checking for new Milkdown versions or missing dist files ---"
           # Get the current package version from package.json
           CURRENT_VERSION=$(jq -r .version package.json)
           VERSIONED_DIST_EXISTS="dist/$CURRENT_VERSION"
@@ -34,94 +36,85 @@ jobs:
           if [ ! -d "$VERSIONED_DIST_EXISTS" ]; then
             echo "Versioned dist directory '$VERSIONED_DIST_EXISTS' does not exist. Forcing rebuild."
             changes_found=true
-          elif ncu --target latest "@milkdown/*" | grep -q "All dependencies match the latest package versions"; then
-            echo "No new version found for @milkdown/*."
           else
-            echo "New version of @milkdown/* found. Proceeding with update."
-            changes_found=true
-            ncu -u --target latest "@milkdown/*"
+            echo "Versioned dist directory '$VERSIONED_DIST_EXISTS' already exists. Checking for new package versions."
+            if ! ncu --target latest "@milkdown/*" | grep -q "All dependencies match the latest package versions"; then
+              echo "New version of @milkdown/* found. Proceeding with update."
+              changes_found=true
+              ncu -u --target latest "@milkdown/*"
+            else
+              echo "No new version found for @milkdown/*."
+            fi
           fi
 
-          echo "Running npm install..."
-          npm install
+          if [[ "$changes_found" == "true" ]]; then
+            echo "--- Changes detected, proceeding with build and organization ---"
+            echo "Running npm install..."
+            npm install
 
-          echo "Running npm run build..."
-          npm run build # This outputs to dist-temp
+            echo "Running npm run build..."
+            npm run build # This outputs to dist-temp
 
-          echo "Organizing dist files..."
-          set -x # Enable command tracing for this section
+            echo "Organizing dist files..."
+            set -x # Enable command tracing for this section
 
-          # Remove old top-level files from dist, if they exist
-          rm -f dist/milkdown-crepe-bundle.umd.js
-          rm -f dist/milkdown-crepe-bundle.umd.css
+            # Remove old top-level files from dist, if they exist
+            rm -f dist/milkdown-crepe-bundle.umd.js
+            rm -f dist/milkdown-crepe-bundle.umd.css
 
-          # Get the current package version
-          VERSION=$(jq -r .version package.json)
-          echo "VERSION variable is: $VERSION"
+            # Get the current package version (after ncu -u might have updated it)
+            VERSION=$(jq -r .version package.json)
+            echo "VERSION variable is: $VERSION"
 
-          # List contents of dist-temp for debugging
-          echo "Contents of dist-temp before organizing:"
-          ls -R dist-temp || echo "dist-temp not found or empty"
+            # List contents of dist-temp for debugging
+            echo "Contents of dist-temp before organizing:"
+            ls -R dist-temp || echo "dist-temp not found or empty"
 
-          # Define paths and names
-          TEMP_DIR="dist-temp"
-          VERSIONED_DIR="dist/$VERSION"
-          LATEST_DIR="dist/latest"
-          BUNDLE_NAME="milkdown-crepe-bundle.umd"
-          JS_FILE="$BUNDLE_NAME.js"
-          CSS_FILE="$BUNDLE_NAME.css"
-          SOURCE_JS_PATH="$TEMP_DIR/$JS_FILE"
-          SOURCE_CSS_PATH="$TEMP_DIR/$CSS_FILE"
-          VERSIONED_JS_PATH="$VERSIONED_DIR/$BUNDLE_NAME-$VERSION.js"
-          VERSIONED_MIN_JS_PATH="$VERSIONED_DIR/$BUNDLE_NAME-$VERSION.min.js"
-          VERSIONED_CSS_PATH="$VERSIONED_DIR/$BUNDLE_NAME-$VERSION.css"
-          LATEST_JS_PATH="$LATEST_DIR/$BUNDLE_NAME.js"
-          LATEST_MIN_JS_PATH="$LATEST_DIR/$BUNDLE_NAME.min.js"
-          LATEST_CSS_PATH="$LATEST_DIR/$BUNDLE_NAME.css"
+            # Define paths and names
+            TEMP_DIR="dist-temp"
+            VERSIONED_DIR="dist/$VERSION"
+            LATEST_DIR="dist/latest"
+            BUNDLE_NAME="milkdown-crepe-bundle.umd"
+            JS_FILE="$BUNDLE_NAME.js"
+            CSS_FILE="$BUNDLE_NAME.css"
+            SOURCE_JS_PATH="$TEMP_DIR/$JS_FILE"
+            SOURCE_CSS_PATH="$TEMP_DIR/$CSS_FILE"
+            VERSIONED_JS_PATH="$VERSIONED_DIR/$BUNDLE_NAME-$VERSION.js"
+            VERSIONED_MIN_JS_PATH="$VERSIONED_DIR/$BUNDLE_NAME-$VERSION.min.js"
+            VERSIONED_CSS_PATH="$VERSIONED_DIR/$BUNDLE_NAME-$VERSION.css"
+            LATEST_JS_PATH="$LATEST_DIR/$BUNDLE_NAME.js"
+            LATEST_MIN_JS_PATH="$LATEST_DIR/$BUNDLE_NAME.min.js"
+            LATEST_CSS_PATH="$LATEST_DIR/$BUNDLE_NAME.css"
 
-          # Create versioned directory
-          mkdir -p $VERSIONED_DIR
+            # Create versioned directory
+            mkdir -p $VERSIONED_DIR
 
-          # Copy JS and CSS to versioned directory
-          cp $SOURCE_JS_PATH $VERSIONED_JS_PATH
-          cp $SOURCE_CSS_PATH $VERSIONED_CSS_PATH
+            # Copy JS and CSS to versioned directory
+            cp $SOURCE_JS_PATH $VERSIONED_JS_PATH
+            cp $SOURCE_CSS_PATH $VERSIONED_CSS_PATH
 
-          # Create minified JS version and save to versioned directory
-          npx terser $SOURCE_JS_PATH -o $VERSIONED_MIN_JS_PATH --compress --mangle
+            # Create minified JS version and save to versioned directory
+            npx terser $SOURCE_JS_PATH -o $VERSIONED_MIN_JS_PATH --compress --mangle
 
-          # Create a 'latest' directory for easy access
-          rm -rf $LATEST_DIR
-          mkdir -p $LATEST_DIR
+            # Create a 'latest' directory for easy access
+            rm -rf $LATEST_DIR
+            mkdir -p $LATEST_DIR
 
-          # Copy versioned files (JS and CSS) to latest directory
-          cp $VERSIONED_JS_PATH $LATEST_JS_PATH
-          cp $VERSIONED_MIN_JS_PATH $LATEST_MIN_JS_PATH
-          cp $VERSIONED_CSS_PATH $LATEST_CSS_PATH
+            # Copy versioned files (JS and CSS) to latest directory
+            cp $VERSIONED_JS_PATH $LATEST_JS_PATH
+            cp $VERSIONED_MIN_JS_PATH $LATEST_MIN_JS_PATH
+            cp $VERSIONED_CSS_PATH $LATEST_CSS_PATH
 
-          # List contents of dist for debugging before cleanup
-          echo "Contents of dist before cleaning dist-temp:"
-          ls -R dist || echo "dist not found or empty"
+            # List contents of dist for debugging before cleanup
+            echo "Contents of dist before cleaning dist-temp:"
+            ls -R dist || echo "dist not found or empty"
 
-          # Clean up temporary directory
-          rm -rf $TEMP_DIR
-          set +x # Disable command tracing
-
-          echo "Determining if changes were found..."
-          # Check if package.json or package-lock.json have changes
-          if ! git diff --exit-code package.json package-lock.json > /dev/null; then
-            echo "Changes detected in package.json or package-lock.json."
-            changes_found=true
-          fi
-
-          # Check if the dist directory has changes (new files, modified files, etc.)
-          # This is crucial because the dist directory is rm -rf and recreated
-          if ! git diff --exit-code --quiet dist/; then
-            echo "Changes detected in dist directory."
-            changes_found=true
-          fi
-
-          if [[ "$changes_found" == "false" ]]; then
-            echo "No changes detected overall."
+            # Clean up temporary directory
+            rm -rf $TEMP_DIR
+            set +x # Disable command tracing
+            echo "--- Build and organization complete ---"
+          else
+            echo "--- No changes detected, skipping build and organization ---"
           fi
 
           if [[ "$changes_found" == "true" ]]; then
