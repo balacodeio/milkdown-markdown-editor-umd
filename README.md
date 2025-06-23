@@ -68,6 +68,8 @@ Contributions are welcome! Please open an issue or submit a pull request with an
 
 ## License
 
+This project is a UMD (Universal Module Definition) build of the [@milkdown/crepe](https://github.com/Milkdown/milkdown) editor. The original source code is licensed under the MIT License.
+
 ```Text
 MIT License
 
