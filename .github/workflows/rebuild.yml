@@ -26,12 +26,20 @@ jobs:
         run: |
           set -e # Exit immediately if a command exits with a non-zero status.
           changes_found=false
-          if ncu --target latest "@milkdown/crepe" | grep -q "All dependencies match the latest package versions"; then
-            echo "No new version found for @milkdown/crepe."
-          else
-            echo "New version of @milkdown/crepe found. Proceeding with update."
+          # Get the current package version from package.json
+          CURRENT_VERSION=$(jq -r .version package.json)
+          VERSIONED_DIST_EXISTS="dist/$CURRENT_VERSION"
+
+          # Check if the versioned dist directory already exists
+          if [ ! -d "$VERSIONED_DIST_EXISTS" ]; then
+            echo "Versioned dist directory '$VERSIONED_DIST_EXISTS' does not exist. Forcing rebuild."
             changes_found=true
-            ncu -u --target latest "@milkdown/crepe"
+          elif ncu --target latest "@milkdown/*" | grep -q "All dependencies match the latest package versions"; then
+            echo "No new version found for @milkdown/*."
+          else
+            echo "New version of @milkdown/* found. Proceeding with update."
+            changes_found=true
+            ncu -u --target latest "@milkdown/*"
           fi
 
           echo "Running npm install..."
@@ -115,23 +123,19 @@ jobs:
             echo "changes=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Get new version from package.json
+      - name: Get current package version for tagging
         if: steps.build_and_stage.outputs.changes == 'true'
         id: get_version
         run: |
-          echo "new_version=$(jq -r .dependencies[\"@milkdown/crepe\"] package.json | tr -d '^')" >> $GITHUB_ENV
+          echo "new_version=$(jq -r .version package.json)" >> $GITHUB_ENV
 
-      - name: Update package.json version
-        if: steps.build_and_stage.outputs.changes == 'true' # Only update if @milkdown/crepe changed
+      - name: Update package.json version (if needed, though usually handled by ncu -u)
+        if: steps.build_and_stage.outputs.changes == 'true'
         run: |
-          # This step assumes new_version is set if changes were due to @milkdown/crepe update
-          # If changes were only in dist, new_version might not be set, handle accordingly or ensure it's always the current version
-          if [ -n "${{ steps.get_version.outputs.new_version }}" ]; then
-            npm version ${{ steps.get_version.outputs.new_version }} --no-git-tag-version --allow-same-version
-          else
-            echo "No new @milkdown/crepe version to update in package.json, using current version for tagging."
-            echo "new_version=$(jq -r .version package.json)" >> $GITHUB_ENV 
-          fi
+          # This step is primarily for ensuring the package.json version matches the intended release version
+          # It uses the version from package.json itself, which should be updated by ncu -u if dependencies changed
+          # Or it's the existing version if only dist was missing.
+          npm version ${{ env.new_version }} --no-git-tag-version --allow-same-version
 
       - name: Commit and push changes
         if: steps.build_and_stage.outputs.changes == 'true'
