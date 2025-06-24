@@ -8,9 +8,9 @@ This project provides a UMD (Universal Module Definition) bundle for the @milkdo
 
 ## Usage
 
-You can include the bundle in your HTML file to use the Crepe class directly.
+You can include the bundle in your HTML file to use the `Crepe` class directly. The bundle exposes a global `Crepe` constructor on the `window` object.
 
-For development purposes, use the non-minified bundle:
+### Using the Latest Build
 
 ```html
 <!DOCTYPE html>
@@ -18,49 +18,53 @@ For development purposes, use the non-minified bundle:
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Test Milkdown Crepe UMD</title>
-    <!-- Link to the required CSS bundle from this repository -->
-    <!-- Using the latest version -->
-<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/balacodeio/milkdown-markdown-editor-umd@latest/dist/latest/milkdown-crepe-bundle.umd.css">
+    <title>Milkdown Crepe UMD Example</title>
+    <!-- Link to the required CSS bundle -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/balacodeio/milkdown-markdown-editor-umd@latest/dist/latest/milkdown-crepe-bundle.umd.css">
 </head>
 <body>
-    <!-- Add a container for the editor -->
     <div id="editor"></div>
-
-    <!-- Load your self-hosted UMD bundle from jsDelivr -->
-<script src="https://cdn.jsdelivr.net/gh/balacodeio/milkdown-markdown-editor-umd@latest/dist/latest/milkdown-crepe-bundle.umd.js"></script>
+    <script src="https://cdn.jsdelivr.net/gh/balacodeio/milkdown-markdown-editor-umd@latest/dist/latest/milkdown-crepe-bundle.umd.js"></script>
     <script>
-        // The 'Crepe' class is now available on the window object
-        const crepe = new Crepe({
-          root: document.querySelector("#editor"),
-          defaultValue: "## Hello from a UMD Build!\n\nThis editor is powered by a self-updating, automatically built UMD module.",
-        });
-
-        // Create the editor instance
-        crepe.create();
+        // The 'Crepe' class is now available globally
+        new Crepe({
+            root: document.getElementById('editor'),
+            defaultValue: '## Hello from a UMD Build!\n\nThis editor is powered by a self-updating, automatically built UMD module.',
+        }).create();
     </script>
 </body>
 </html>
 ```
 
-### Specific version
+### Using a Specific Version
 
-If you would like to use a specific version then indicate it in the URL:
-
-```HTML
-<script src="https://cdn.jsdelivr.net/gh/balacodeio/milkdown-markdown-editor-umd@<version>/dist/<version>/milkdown-crepe-bundle-<version>.min.js"></script> <!-- Minified bundle -->
-```
-**Action:** Replace `<version>` with the specific version number you want to use.
-
-### Including the CSS
-
-The build process now extracts the necessary CSS into a single `index.css` file. You can include it by linking to it from this repository's jsDelivr path. Include the following line in your HTML's `<head>` section, replacing `<version>` with the specific version of the UMD bundle you are using:
+To use a specific version, replace `<version>` with the desired version (e.g., `7.14.0`):
 
 ```html
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/balacodeio/milkdown-markdown-editor-umd@<version>/dist/<version>/milkdown-crepe-bundle.umd.css">
+<script src="https://cdn.jsdelivr.net/gh/balacodeio/milkdown-markdown-editor-umd@<version>/dist/<version>/milkdown-crepe-bundle.umd.js"></script>
 ```
 
-Alternatively, you can still link to the CSS files from the official Milkdown Crepe CDN or self-host them, although linking to the extracted CSS from this repository is now the recommended method.
+**Example:**
+```html
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/balacodeio/milkdown-markdown-editor-umd@7.14.0/dist/7.14.0/milkdown-crepe-bundle.umd.css">
+<script src="https://cdn.jsdelivr.net/gh/balacodeio/milkdown-markdown-editor-umd@7.14.0/dist/7.14.0/milkdown-crepe-bundle.umd.js"></script>
+```
+
+### Instantiating the Editor
+
+After including the script, the `Crepe` class is available globally. Example usage:
+
+```js
+new Crepe({
+    root: document.getElementById('editor'),
+    defaultValue: '# Hello Milkdown!\n\nThis is a test of the UMD bundle.',
+}).create();
+```
+
+### Notes
+- The UMD bundle exposes only the `Crepe` class globally. Do **not** try to use `Editor.make()` or destructure from other global variables.
+- Always ensure you are referencing the correct path for the CSS and JS files, matching the version you want to use.
 
 ## Contributing
 
@@ -92,3 +96,4 @@ AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
 LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
+```

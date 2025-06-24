@@ -3,10 +3,13 @@ import path from 'path';
 import styles from 'rollup-plugin-styles';
 
 export default defineConfig({
+  define: {
+    'process.env.NODE_ENV': JSON.stringify('production'),
+  },
   build: {
     lib: {
       entry: path.resolve(__dirname, 'src/index.js'),
-      name: 'MilkdownEditor',
+      name: 'Crepe', // Changed from 'MilkdownEditor' to 'Crepe'
       formats: ['umd'],
       fileName: (format) => `milkdown-crepe-bundle.umd.js`,
     },

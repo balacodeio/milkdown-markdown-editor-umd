@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Milkdown UMD Bundle Test</title>
+    <link rel="stylesheet" href="./dist/latest/milkdown-crepe-bundle.umd.css">
+    <style>
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: sans-serif;
+        }
+
+        #milkdown {
+            border: 1px solid #ccc;
+            min-height: 300px;
+            padding: 10px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Milkdown UMD Bundle Test</h1>
+    <div id="milkdown"></div>
+
+    <script src="./dist/latest/milkdown-crepe-bundle.umd.js"></script>
+    <script>
+        // Wait for the DOM and all scripts to be fully loaded and ready.
+        document.addEventListener('DOMContentLoaded', (event) => {
+            // The "crepe" UMD bundle exposes a global "Crepe" constructor.
+            // We instantiate it directly.
+            new Crepe({
+                root: document.getElementById('milkdown'),
+                defaultValue: '# Hello Milkdown!\n\nThis is a test of the UMD bundle.',
+            }).create();
+        });
+    </script>
+</body>
+
+</html>
