@@ -21,6 +21,9 @@ jobs:
       - name: Install npm-check-updates
         run: npm install -g npm-check-updates
 
+      - name: Install jq
+        run: sudo apt-get update && sudo apt-get install -y jq
+
       - name: Check for updates, build, organize, and stage changes
         id: build_and_stage
         run: |
