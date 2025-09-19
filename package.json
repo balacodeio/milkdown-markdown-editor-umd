@@ -1,10 +1,16 @@
 {
   "name": "milkdown-crepe-umd",
-  "version": "7.14.0",
+  "version": "7.16.0",
   "description": "A self-updating UMD distribution of the @milkdown/crepe package.",
   "main": "dist/latest/milkdown-crepe-bundle.min.js",
   "scripts": {
-    "build": "vite build"
+    "clean": "node -e \"require('fs').rmSync('dist', { recursive: true, force: true });\"",
+    "build:js": "node -e \"const fs = require('fs'); fs.copyFileSync('src/index.js', 'src/index.js.original.bak'); const originalContent = fs.readFileSync('src/index.js', 'utf8'); const modifiedContent = originalContent.replace(/import '\\@milkdown\\/crepe\\/theme\\/common\\/style\\.css';\\nimport '\\@milkdown\\/crepe\\/theme\\/frame\\.css';\\n/, ''); fs.writeFileSync('src/index.js', modifiedContent);\" && vite build && node -e \"require('fs').copyFileSync('src/index.js.original.bak', 'src/index.js'); require('fs').unlinkSync('src/index.js.original.bak');\"",
+    "build:css": "postcss node_modules/@milkdown/crepe/lib/theme/common/style.css node_modules/@milkdown/crepe/lib/theme/frame/style.css --dir dist/temp-css",
+    "transform:css-assets": "node -e \"const fs = require('fs'); const path = require('path'); const version = require('./package.json').version; const sourceCssDir = 'dist/temp-css'; const targetVersionedDir = `dist/${version}`; const targetLatestDir = 'dist/latest'; const versionedCssFileName = `milkdown-crepe-bundle.${version}.umd.css`; const latestCssFileName = `milkdown-crepe-bundle.umd.css`; fs.mkdirSync(targetVersionedDir, { recursive: true }); fs.mkdirSync(targetLatestDir, { recursive: true }); fs.readdirSync(sourceCssDir).forEach(file => { if (file.endsWith('.css')) { const oldPath = path.join(sourceCssDir, file); fs.copyFileSync(oldPath, path.join(targetVersionedDir, versionedCssFileName)); fs.copyFileSync(oldPath, path.join(targetLatestDir, latestCssFileName)); } });\"",
+    "copy:latest-js-and-css": "node -e \"const fs = require('fs'); const path = require('path'); const version = require('./package.json').version; const versionedDir = `dist/${version}`; const latestDir = `dist/latest`; fs.readdirSync(versionedDir).forEach(file => { if (file.endsWith('.js') && file.includes(`.${version}.`)) { fs.copyFileSync(path.join(versionedDir, file), path.join(latestDir, file.replace(`.${version}.`, '.'))); } else if (file.endsWith('.css') && file.includes(`.${version}.`)) { fs.copyFileSync(path.join(versionedDir, file), path.join(latestDir, file.replace(`.${version}.`, '.'))); } });\"",
+    "clean:temp-css": "node -e \"require('fs').rmSync('dist/temp-css', { recursive: true, force: true });\"",
+    "build": "npm run clean && npm run build:js && npm run build:css && npm run transform:css-assets && npm run copy:latest-js-and-css && npm run clean:temp-css"
   },
   "repository": {
     "type": "git",
@@ -13,10 +19,14 @@
   "author": "Your Name",
   "license": "ISC",
   "dependencies": {
-    "@milkdown/crepe": "^7.14.0"
+    "@milkdown/crepe": "^7.16.0"
   },
   "devDependencies": {
+    "autoprefixer": "^10.4.21",
+    "cross-env": "^10.0.0",
     "npm-check-updates": "^16.14.20",
+    "postcss": "^8.5.6",
+    "postcss-cli": "^11.0.1",
     "rollup-plugin-styles": "^4.0.0",
     "rollup-plugin-terser": "^7.0.2",
     "vite": "^6.3.5"

@@ -1,10 +1,15 @@
 import { defineConfig } from 'vite';
 import path from 'path';
-import styles from 'rollup-plugin-styles';
 import { terser } from 'rollup-plugin-terser';
 
 // Helper to get version from package.json
-import pkg from './package.json' assert { type: 'json' };
+import { readFileSync } from 'fs';
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+const pkg = JSON.parse(readFileSync(`${__dirname}/package.json`, 'utf-8'));
 const version = pkg.version;
 
 export default defineConfig({
@@ -16,49 +21,33 @@ export default defineConfig({
       entry: path.resolve(__dirname, 'src/index.js'),
       name: 'Crepe',
       formats: ['umd'],
-      fileName: (format) => `milkdown-crepe-bundle.umd.js`,
+      // fileName and assetFileNames are now handled by rollupOptions.output
     },
-    outDir: undefined, // We'll override output paths below
-    emptyOutDir: false, // Don't clear folders automatically
-    cssCodeSplit: true,
-    cssTarget: 'es2015',
-    css: {},
+    // outDir is defined per output in rollupOptions.output
+    emptyOutDir: false, // Ensure dist folder is not cleared automatically
+    // CSS-related options removed as CSS is built separately
     rollupOptions: {
       output: [
-        // Versioned output
+        // Non-minified UMD build
         {
           dir: `dist/${version}`,
-          assetFileNames: `milkdown-crepe-bundle.umd.css`,
-          entryFileNames: `milkdown-crepe-bundle.umd.js`,
+          entryFileNames: `milkdown-crepe-bundle.${version}.umd.js`,
           format: 'umd',
           name: 'Crepe',
+          // assetFileNames removed: CSS is handled by PostCSS
         },
+        // Minified UMD build
         {
           dir: `dist/${version}`,
-          assetFileNames: `milkdown-crepe-bundle.umd.css`,
-          entryFileNames: `milkdown-crepe-bundle.umd.min.js`,
+          entryFileNames: `milkdown-crepe-bundle.${version}.umd.min.js`,
           format: 'umd',
           name: 'Crepe',
-          plugins: [terser()],
-        },
-        // Latest output
-        {
-          dir: `dist/latest`,
-          assetFileNames: `milkdown-crepe-bundle.umd.css`,
-          entryFileNames: `milkdown-crepe-bundle.umd.js`,
-          format: 'umd',
-          name: 'Crepe',
-        },
-        {
-          dir: `dist/latest`,
-          assetFileNames: `milkdown-crepe-bundle.umd.css`,
-          entryFileNames: `milkdown-crepe-bundle.umd.min.js`,
-          format: 'umd',
-          name: 'Crepe',
-          plugins: [terser()],
+          plugins: [terser()], // Apply terser for minified output
+          // assetFileNames removed: CSS is handled by PostCSS
         },
       ],
     },
   },
-  plugins: [styles({ mode: 'extract' })],
+  // No top-level plugins needed for this setup
+  plugins: [],
 });
